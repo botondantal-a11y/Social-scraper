@@ -1,0 +1,288 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@500;600;700&display=swap');
+
+:root {
+  /* Color Palette - Tippmix / Szerencsejáték Zrt. Design */
+  --bg-primary: #f2fae8; /* Very light clover-green page background to match the logo */
+  --bg-secondary: #ffffff; /* Pure white content containers & cards */
+  --bg-tertiary: #f9fbf7; /* Extremely soft green-gray for panel backgrounds */
+  
+  --text-primary: #132267; /* Tippmix Deep Navy Blue for headings and primary text */
+  --text-secondary: #404040; /* Dark gray for standard paragraph text */
+  --text-muted: #707070; /* Muted gray for small subtitles */
+
+  --accent-primary: #82c341; /* Official Szerencsejáték Zrt. Clover Green from the logo */
+  --accent-secondary: #132267; /* Deep Navy Blue for secondary actions */
+  --accent-tertiary: #e9f5db; /* Light clover-green tint for borders/active states */
+  --brand: var(--text-primary); /* Primary Brand Color */
+  
+  --success: #82c341;
+  --warning: #FBE122; /* Yellow highlight */
+  --error: #ff007f; /* Tippmix Hot Pink accent */
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, var(--accent-primary), #97d754);
+  --gradient-brand: linear-gradient(135deg, var(--text-primary), var(--accent-secondary));
+  --gradient-glass: #ffffff;
+  
+  /* Layout & Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  
+  --radius-sm: 4px; /* Slightly squared corners matching the screenshot */
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Oswald', sans-serif; /* Tall, bold sports-book typography */
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease-in-out;
+  --transition-normal: 0.2s ease-in-out;
+  --transition-slow: 0.4s ease-in-out;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: var(--spacing-md);
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  text-transform: uppercase; /* Authentic Tippmix sport feel */
+}
+
+a {
+  color: var(--accent-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+button {
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+/* Tippmix High-Fidelity Card & Panel Styles */
+.glass-panel {
+  background: var(--bg-secondary);
+  border: 1px solid #dcdcdc;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 15px rgba(19, 34, 103, 0.04), 0 2px 4px rgba(19, 34, 103, 0.02);
+}
+
+.glass-card {
+  background: var(--bg-secondary);
+  border: 1px solid #e1e4e1;
+  border-radius: var(--radius-md);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+  box-shadow: 0 2px 6px rgba(19, 34, 103, 0.03);
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(19, 34, 103, 0.07);
+  border-color: #bcd5c6;
+}
+
+/* Typography Utilities */
+.text-gradient {
+  color: var(--text-primary);
+  background: none;
+  -webkit-text-fill-color: initial;
+}
+
+/* Tippmix Sports Book style uppercase bold green buttons */
+.btn-primary {
+  background: var(--accent-primary);
+  color: white;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: background-color var(--transition-fast);
+  box-shadow: 0 2px 4px rgba(130, 195, 65, 0.2);
+}
+
+.btn-primary:hover {
+  background: #71b232; /* Slightly darker clover green */
+  transform: none;
+  box-shadow: 0 4px 8px rgba(130, 195, 65, 0.3);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: var(--text-primary);
+  border: 1px solid #dcdcdc;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  transition: all var(--transition-fast);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+/* Input Fields matching Tippmix Keresés box */
+.input-field {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #dcdcdc;
+  color: var(--text-primary);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-family: var(--font-sans);
+  transition: all var(--transition-fast);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(31, 131, 48, 0.15);
+  background: #ffffff;
+}
+
+.input-field::placeholder {
+  color: #999999;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--transition-normal) forwards;
+}
+
+.animate-pulse-glow {
+  animation: none;
+}
+
+/* Utilities */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Custom Elegant Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(19, 34, 103, 0.15);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(19, 34, 103, 0.3);
+}
+
+/* Elegant scrollbar support for standard browsers */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(19, 34, 103, 0.15) transparent;
+}
+
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  /* Hide UI elements */
+  header, form, .print-hide {
+    display: none !important;
+  }
+  
+  /* Adjust layout for print */
+  .glass-card {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .container, [style*="maxWidth: '1000px'"] {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Prevent page breaks inside sections */
+  section, .cv-item {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}

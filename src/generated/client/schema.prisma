@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Article {
+  id               String    @id @default(uuid())
+  title            String
+  url              String    @unique
+  platform         String
+  fullText         String
+  summary          String
+  commentSummary   String?
+  reactions        String?
+  imageUrl         String?
+  discoveryKeyword String?
+  category         String?
+  embedding        String?
+  publishedAt      DateTime?
+  isFavorite       Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  comments         Comment[]
+}
+
+model Comment {
+  id        String  @id @default(uuid())
+  articleId String
+  author    String
+  text      String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+}
+
+model DiscoveryDork {
+  id         String   @id @default(uuid())
+  query      String
+  label      String
+  keyword    String?
+  startDate  String?
+  endDate    String?
+  maxResults Int      @default(30)
+  language   String   @default("HU") // HU vagy GLOBAL
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
+
+model DiscoveredLink {
+  id             String   @id @default(uuid())
+  url            String   @unique
+  title          String?
+  source         String?
+  publishedAt    String?
+  status         String   @default("pending") // pending, processed, dismissed
+  relevanceScore Int?
+  embedding      String?
+  createdAt      DateTime @default(now())
+  dorkKeyword    String?
+  dorkLabel      String?
+}
+
+model StatisticDataset {
+  id        String   @id @default(uuid())
+  title     String
+  sourceUrl String
+  data      String // Stringified JSON formátumú adat
+  summary   String?
+  createdAt DateTime @default(now())
+}
+
+model ScrapeJob {
+  id             String   @id @default(uuid())
+  url            String
+  status         String   @default("running") // running, completed, error
+  totalPages     Int?
+  processedPages Int      @default(0)
+  datasetId      String?
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model LinkedInAccount {
+  id           String    @id @default(uuid())
+  cookieString String // li_at cookie value
+  isActive     Boolean   @default(true)
+  lastUsed     DateTime?
+  dailyCount   Int       @default(0) // Napi lekérések száma a limitáláshoz
+  createdAt    DateTime  @default(now())
+}
+
+model NetworkKeyword {
+  id        String   @id @default(uuid())
+  keyword   String
+  type      String   @default("PROFILE") // PROFILE or POST
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model IndustryProfile {
+  id                   String               @id @default(uuid())
+  name                 String
+  linkedinUrl          String               @unique
+  profileImageUrl      String?
+  headline             String?
+  company              String?
+  about                String?
+  experience           String? // JSON string
+  education            String? // JSON string
+  connectionsCount     Int?
+  isActive             Boolean              @default(true)
+  lastScrapedAt        DateTime?
+  createdAt            DateTime             @default(now())
+  posts                LinkedInPost[]
+  interactionsAsActor  NetworkInteraction[] @relation("InteractionActor")
+  interactionsAsTarget NetworkInteraction[] @relation("InteractionTarget")
+}
+
+model LinkedInPost {
+  id                String               @id @default(uuid())
+  profileId         String
+  content           String
+  url               String?              @unique
+  publishedAt       String?
+  extractedEntities String? // JSON string (személyek, helyszínek, rendezvények)
+  createdAt         DateTime             @default(now())
+  profile           IndustryProfile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  interactions      NetworkInteraction[]
+}
+
+model NetworkInteraction {
+  id        String   @id @default(uuid())
+  actorId   String // Aki interaktált (kommentelt/likeolt)
+  targetId  String? // Akivel interaktált (a poszt szerzője)
+  postId    String? // A poszt, amire a reakció érkezett
+  type      String // "LIKE", "COMMENT", "FOLLOW"
+  content   String? // Ha komment, akkor a szöveg
+  createdAt DateTime @default(now())
+
+  actor  IndustryProfile  @relation("InteractionActor", fields: [actorId], references: [id])
+  target IndustryProfile? @relation("InteractionTarget", fields: [targetId], references: [id])
+  post   LinkedInPost?    @relation(fields: [postId], references: [id])
+}
+
+model TargetMonitor {
+  id          String    @id @default(uuid())
+  url         String
+  name        String
+  selector    String?
+  urlFilter   String?
+  minDate     DateTime?
+  maxDate     DateTime?
+  lastChecked DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+}
+
+model SavedYoutubeVideo {
+  id                 String   @id @default(uuid())
+  videoId            String   @unique
+  url                String
+  title              String
+  imageUrl           String?
+  transcript         String
+  originalTranscript String?
+  summary            String
+  createdAt          DateTime @default(now())
+}
+
+model TrendingTopic {
+  id               String   @id @default(uuid())
+  title            String
+  formattedTraffic String?
+  relatedQueries   String? // JSON string
+  articles         String? // JSON string of articles
+  trendDate        DateTime
+  createdAt        DateTime @default(now())
+
+  @@unique([title, trendDate])
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model TrendDocument {
+  id         String   @id @default(uuid())
+  filename   String
+  uploadedAt DateTime @default(now())
+  trends     Trend[]
+}
+
+model Trend {
+  id          String        @id @default(uuid())
+  title       String
+  category    String // PESTEL (Political, Economic, stb.) vagy egyéb dinamikus kategória
+  horizon     Int // Időtáv: pl. 2025, 2030
+  description String
+  impact      String? // Magas/Közepes/Alacsony - ez befolyásolhatja a színét a radaron
+  documentId  String
+  document    TrendDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+}

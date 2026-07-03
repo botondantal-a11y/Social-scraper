@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: omniscrape
+    runtime: docker
+    plan: free
+    healthCheckPath: /login
+    envVars:
+      - key: DATABASE_URL
+        sync: false # Neon Postgres connection string
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: AUTH_GOOGLE_ID
+        sync: false
+      - key: AUTH_GOOGLE_SECRET
+        sync: false
+      - key: AUTH_TRUST_HOST
+        value: "true"
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false

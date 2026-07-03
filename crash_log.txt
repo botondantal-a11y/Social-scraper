@@ -1,0 +1,1 @@
+{"success": false, "error": "Failed to scrape person profile: Rate limit message detected on page.", "url": "https://www.linkedin.com/in/orsolya-hegedus-mrics-76793466/"}
