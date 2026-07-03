@@ -11,12 +11,11 @@ RUN npm install --no-audit --no-fund
 # Playwright (Chrome) és a linuxos függőségeinek telepítése
 RUN npx playwright install --with-deps chromium
 
-# Adatbázis sémák másolása és Prisma generálása
-COPY prisma ./prisma
-RUN npx prisma generate
-
 # Teljes projekt másolása
 COPY . .
+
+# Prisma kliens generálása (a COPY után, hogy a repóban lévő régi generált kliens ne írja felül)
+RUN npx prisma generate
 
 # Next.js projekt felépítése (dummy DATABASE_URL, mert buildkor nincs DB kapcsolat)
 ARG DATABASE_URL="postgresql://build:build@localhost:5432/build"
