@@ -103,7 +103,7 @@ export async function POST(req: Request) {
           // Check if already in DiscoveredLink
           const existingDLink = await prisma.discoveredLink.findUnique({ where: { url: link } });
           // Check if already in Article
-          const existingArticle = await prisma.article.findUnique({ where: { url: link } });
+          const existingArticle = await prisma.article.findFirst({ where: { url: link } });
           
           if (!existingDLink && !existingArticle) {
             // New link!
