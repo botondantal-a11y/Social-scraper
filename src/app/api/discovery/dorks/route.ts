@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    const dorks = await prisma.$queryRawUnsafe('SELECT * FROM DiscoveryDork ORDER BY createdAt DESC');
+    const dorks = await prisma.discoveryDork.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
     return NextResponse.json(dorks);
   } catch (error: any) {
-    console.error('SQL Get Dorks Error:', error);
+    console.error('Get Dorks Error:', error);
     return NextResponse.json({ error: 'Hiba a parancsok lekérésekor' }, { status: 500 });
   }
 }
@@ -16,17 +16,23 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const { label, query, keyword, startDate, endDate, maxResults, language } = await req.json();
-    const id = Math.random().toString(36).substring(7);
-    const now = new Date().toISOString();
-    
-    await prisma.$executeRawUnsafe(
-      'INSERT INTO DiscoveryDork (id, label, query, keyword, startDate, endDate, maxResults, language, isActive, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      id, label, query, keyword || null, startDate || null, endDate || null, maxResults || 30, language || 'HU', 1, now
-    );
-    
-    return NextResponse.json({ id, label, query, keyword, startDate, endDate, maxResults: maxResults || 30, language: language || 'HU', isActive: true });
+
+    const dork = await prisma.discoveryDork.create({
+      data: {
+        label,
+        query,
+        keyword: keyword || null,
+        startDate: startDate || null,
+        endDate: endDate || null,
+        maxResults: maxResults || 30,
+        language: language || 'HU',
+        isActive: true
+      }
+    });
+
+    return NextResponse.json(dork);
   } catch (error: any) {
-    console.error('SQL Create Dork Error:', error);
+    console.error('Create Dork Error:', error);
     return NextResponse.json({ error: error.message || 'Hiba a mentéskor' }, { status: 500 });
   }
 }
@@ -34,15 +40,23 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     const { id, label, query, keyword, startDate, endDate, maxResults, language } = await req.json();
-    
-    await prisma.$executeRawUnsafe(
-      'UPDATE DiscoveryDork SET label = ?, query = ?, keyword = ?, startDate = ?, endDate = ?, maxResults = ?, language = ? WHERE id = ?',
-      label, query, keyword || null, startDate || null, endDate || null, maxResults || 30, language || 'HU', id
-    );
-    
-    return NextResponse.json({ id, label, query, keyword, startDate, endDate, maxResults: maxResults || 30, language: language || 'HU', success: true });
+
+    const dork = await prisma.discoveryDork.update({
+      where: { id },
+      data: {
+        label,
+        query,
+        keyword: keyword || null,
+        startDate: startDate || null,
+        endDate: endDate || null,
+        maxResults: maxResults || 30,
+        language: language || 'HU'
+      }
+    });
+
+    return NextResponse.json({ ...dork, success: true });
   } catch (error: any) {
-    console.error('SQL Update Dork Error:', error);
+    console.error('Update Dork Error:', error);
     return NextResponse.json({ error: 'Hiba a módosításkor' }, { status: 500 });
   }
 }
@@ -50,10 +64,10 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
   try {
     const { id } = await req.json();
-    await prisma.$executeRawUnsafe('DELETE FROM DiscoveryDork WHERE id = ?', id);
+    await prisma.discoveryDork.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error('SQL Delete Dork Error:', error);
+    console.error('Delete Dork Error:', error);
     return NextResponse.json({ error: 'Hiba a törléskor' }, { status: 500 });
   }
 }
