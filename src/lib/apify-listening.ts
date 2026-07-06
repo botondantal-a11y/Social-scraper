@@ -16,7 +16,8 @@ export type ListeningPlatform =
   | 'tiktok'
   | 'youtube'
   | 'google_maps'
-  | 'linkedin';
+  | 'linkedin'
+  | 'reddit';
 
 type PlatformConfig = {
   label: string;
@@ -80,6 +81,21 @@ export const PLATFORMS: Record<ListeningPlatform, PlatformConfig> = {
       maxItems: limit,
     }),
   },
+  reddit: {
+    label: 'Reddit',
+    defaultActor: 'trudax/reddit-scraper-lite',
+    buildInput: (urls, limit) => ({
+      startUrls: urls.map((url) => ({ url })),
+      skipComments: false,
+      skipUserPosts: false,
+      skipCommunity: true,
+      includeMediaLinks: true,
+      maxComments: limit,
+      maxItems: limit,
+      maxPostCount: limit,
+      proxy: { useApifyProxy: true },
+    }),
+  },
 };
 
 function firstString(...vals: unknown[]): string {
@@ -105,6 +121,7 @@ export function normalizeComment(item: Record<string, any>): NormalizedComment {
     item.authorName,
     item.ownerUsername,
     item.username,
+    item.userName,
     item.name,
     item.user?.name,
     item.user?.username,
@@ -140,11 +157,13 @@ export function normalizeComment(item: Record<string, any>): NormalizedComment {
     item.timestamp,
     item.publishedAt,
     item.createdAt,
+    item.created,
     item.createTime,
     item.time,
     item.commentDate,
     item.publishedTimeText,
-    item.reviewDate
+    item.reviewDate,
+    item.postedAt
   );
 
   const likes = firstNumber(
@@ -154,7 +173,11 @@ export function normalizeComment(item: Record<string, any>): NormalizedComment {
     item.likesNumber,
     item.reactionsCount,
     item.diggCount,
-    item.voteCount
+    item.voteCount,
+    item.upVotes,
+    item.upvotes,
+    item.score,
+    item.numberOfupVotes
   );
 
   const replies = firstNumber(
@@ -162,7 +185,10 @@ export function normalizeComment(item: Record<string, any>): NormalizedComment {
     item.repliesCount,
     item.replyCount,
     item.commentsCount,
-    item.replyCommentCount
+    item.replyCommentCount,
+    item.numberOfComments,
+    item.numberofComments,
+    item.numberOfreplies
   );
 
   const url = firstString(

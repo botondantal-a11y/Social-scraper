@@ -10,6 +10,7 @@ const PLATFORMS: { id: string; label: string; hint: string }[] = [
   { id: "youtube", label: "YouTube", hint: "Videó URL-ek (youtube.com/watch?v=...)" },
   { id: "google_maps", label: "Google Maps", hint: "Hely URL-ek (google.com/maps/place/...) – értékelések" },
   { id: "linkedin", label: "LinkedIn", hint: "Poszt URL-ek (linkedin.com/posts/...)" },
+  { id: "reddit", label: "Reddit", hint: "Poszt URL-ek (reddit.com/r/.../comments/...)" },
 ];
 
 type Comment = {
