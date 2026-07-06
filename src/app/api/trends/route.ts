@@ -52,7 +52,10 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Csak a saját trendjeid láthatóságát módosíthatod." }, { status: 403 });
     }
 
-    const updated = await prisma.trend.update({ where: { id }, data: { visibility } });
+    const updated = await prisma.trend.update({
+      where: { id },
+      data: { visibility, sharedAt: visibility === 'shared' ? new Date() : null }
+    });
     return NextResponse.json({ success: true, trend: updated });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

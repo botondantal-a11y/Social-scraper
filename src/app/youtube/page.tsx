@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, PlayCircle, Loader2, Send, Save, Trash2, LayoutList, ChevronRight, Video, Download, Lock, Users, Share2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import OwnerBadge from "@/components/OwnerBadge";
 
 export default function YoutubeSummarizer() {
   const [url, setUrl] = useState("");
@@ -76,6 +77,7 @@ export default function YoutubeSummarizer() {
   };
 
   const [scopeFilter, setScopeFilter] = useState<"all" | "mine" | "shared">("all");
+  const [sharerFilter, setSharerFilter] = useState("all");
   const [myUserId, setMyUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -311,12 +313,23 @@ export default function YoutubeSummarizer() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel" style={{ padding: '2rem', background: 'white' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
             <h2 style={{ margin: 0 }}>Mentett Videók</h2>
-            <div style={{ display: 'flex', gap: '0.25rem', background: 'var(--bg-tertiary)', borderRadius: '999px', padding: '3px' }}>
-              {([["all", "Minden"], ["mine", "Saját profilom"], ["shared", "Közös"]] as const).map(([id, label]) => (
-                <button key={id} onClick={() => setScopeFilter(id)} style={{ padding: '0.4rem 0.9rem', borderRadius: '999px', border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, background: scopeFilter === id ? '#dc2626' : 'transparent', color: scopeFilter === id ? 'white' : 'var(--text-secondary)' }}>
-                  {label}
-                </button>
-              ))}
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              {(() => {
+                const sharers = Array.from(new Set(savedVideos.filter(v => v.visibility === 'shared' && v.owner?.name).map(v => v.owner.name))).sort() as string[];
+                return sharers.length > 0 ? (
+                  <select value={sharerFilter} onChange={(e) => setSharerFilter(e.target.value)} className="input-field" style={{ width: 'auto', padding: '0.35rem 0.7rem', fontSize: '0.8rem' }} title="Szűrés megosztóra">
+                    <option value="all">Bárki osztotta meg</option>
+                    {sharers.map(s => (<option key={s} value={s}>Megosztó: {s}</option>))}
+                  </select>
+                ) : null;
+              })()}
+              <div style={{ display: 'flex', gap: '0.25rem', background: 'var(--bg-tertiary)', borderRadius: '999px', padding: '3px' }}>
+                {([["all", "Minden"], ["mine", "Saját profilom"], ["shared", "Közös"]] as const).map(([id, label]) => (
+                  <button key={id} onClick={() => setScopeFilter(id)} style={{ padding: '0.4rem 0.9rem', borderRadius: '999px', border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, background: scopeFilter === id ? '#dc2626' : 'transparent', color: scopeFilter === id ? 'white' : 'var(--text-secondary)' }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -326,7 +339,7 @@ export default function YoutubeSummarizer() {
             <div style={{ textAlign: 'center', color: '#888', padding: '3rem' }}>Még nincsenek mentett videóid.</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {savedVideos.map(video => (
+              {savedVideos.filter(v => sharerFilter === "all" ? true : (v.visibility === 'shared' && v.owner?.name === sharerFilter)).map(video => (
                 <div key={video.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', border: '1px solid #eee', borderRadius: '8px' }}>
                   <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     {video.imageUrl && (
@@ -337,15 +350,7 @@ export default function YoutubeSummarizer() {
                       <div style={{ fontSize: '0.8rem', color: '#888', display: 'flex', gap: '1rem', alignItems: 'center' }}>
                         <span>Dátum: {new Date(video.createdAt).toLocaleDateString('hu-HU')}</span>
                         <a href={video.url} target="_blank" rel="noopener noreferrer" style={{ color: '#dc2626' }}>Eredeti videó</a>
-                        {video.visibility === 'shared' ? (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#10b981', fontWeight: 600 }}>
-                            <Users size={12} /> Közös{video.owner?.name ? ` · ${video.owner.name}` : ''}
-                          </span>
-                        ) : (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: 600 }}>
-                            <Lock size={12} /> Privát
-                          </span>
-                        )}
+                        <OwnerBadge visibility={video.visibility} owner={video.owner} sharedAt={video.sharedAt} fallbackDate={video.createdAt} showPrivate />
                       </div>
                     </div>
                   </div>

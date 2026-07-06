@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, Loader2, Radio, Download, FileJson, FileSpreadsheet, ExternalLink, Settings, AlertTriangle, MessageSquare, Save, Trash2, FolderOpen, Lock, Users, Share2 } from "lucide-react";
+import { ArrowLeft, Loader2, Radio, Download, FileJson, FileSpreadsheet, ExternalLink, Settings, AlertTriangle, MessageSquare, Save, Trash2, FolderOpen, Share2 } from "lucide-react";
+import OwnerBadge from "@/components/OwnerBadge";
 
 const PLATFORMS: { id: string; label: string; hint: string }[] = [
   { id: "facebook", label: "Facebook", hint: "Poszt URL-ek (facebook.com/.../posts/...)" },
@@ -42,6 +43,7 @@ export default function ListeningPage() {
   const [savingQuery, setSavingQuery] = useState(false);
   const [saved, setSaved] = useState<any[]>([]);
   const [savedScope, setSavedScope] = useState<"all" | "mine" | "shared">("all");
+  const [savedSharerFilter, setSavedSharerFilter] = useState("all");
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [loadedName, setLoadedName] = useState<string | null>(null);
 
@@ -355,12 +357,23 @@ export default function ListeningPage() {
           <h2 style={{ margin: 0, display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "1.1rem" }}>
             <FolderOpen size={18} /> Mentett lekérdezések
           </h2>
-          <div style={{ display: "flex", gap: "0.25rem", background: "var(--bg-secondary)", borderRadius: "999px", padding: "3px" }}>
-            {([["all", "Minden"], ["mine", "Sajátom"], ["shared", "Közös"]] as const).map(([id, label]) => (
-              <button key={id} onClick={() => setSavedScope(id)} style={{ padding: "0.35rem 0.8rem", borderRadius: "999px", border: "none", cursor: "pointer", fontSize: "0.78rem", fontWeight: 600, background: savedScope === id ? "var(--accent-primary)" : "transparent", color: savedScope === id ? "white" : "var(--text-secondary)" }}>
-                {label}
-              </button>
-            ))}
+          <div style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexWrap: "wrap" }}>
+            {(() => {
+              const sharers = Array.from(new Set(saved.filter((s) => s.visibility === "shared" && s.owner?.name).map((s) => s.owner.name))).sort() as string[];
+              return sharers.length > 0 ? (
+                <select value={savedSharerFilter} onChange={(e) => setSavedSharerFilter(e.target.value)} className="input-field" style={{ width: "auto", padding: "0.3rem 0.6rem", fontSize: "0.78rem" }} title="Szűrés megosztóra">
+                  <option value="all">Bárki osztotta meg</option>
+                  {sharers.map((s) => (<option key={s} value={s}>Megosztó: {s}</option>))}
+                </select>
+              ) : null;
+            })()}
+            <div style={{ display: "flex", gap: "0.25rem", background: "var(--bg-secondary)", borderRadius: "999px", padding: "3px" }}>
+              {([["all", "Minden"], ["mine", "Sajátom"], ["shared", "Közös"]] as const).map(([id, label]) => (
+                <button key={id} onClick={() => setSavedScope(id)} style={{ padding: "0.35rem 0.8rem", borderRadius: "999px", border: "none", cursor: "pointer", fontSize: "0.78rem", fontWeight: 600, background: savedScope === id ? "var(--accent-primary)" : "transparent", color: savedScope === id ? "white" : "var(--text-secondary)" }}>
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -368,7 +381,7 @@ export default function ListeningPage() {
           <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.85rem" }}>Még nincs mentett lekérdezés. Egy lekérés után add meg a nevét és mentsd el.</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-            {saved.map((s) => (
+            {saved.filter((s) => savedSharerFilter === "all" ? true : (s.visibility === "shared" && s.owner?.name === savedSharerFilter)).map((s) => (
               <div key={s.id} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.6rem 0.85rem", border: "1px solid var(--bg-tertiary)", borderRadius: "8px", flexWrap: "wrap" }}>
                 <div style={{ flex: "1 1 200px", minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: "0.9rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</div>
@@ -376,11 +389,7 @@ export default function ListeningPage() {
                     <span style={{ textTransform: "capitalize" }}>{s.platform.replace("_", " ")}</span>
                     <span>{s.commentCount} komment</span>
                     <span>{new Date(s.createdAt).toLocaleDateString("hu-HU")}</span>
-                    {s.visibility === "shared" ? (
-                      <span style={{ color: "var(--success)", display: "inline-flex", alignItems: "center", gap: "0.2rem" }}><Users size={11} /> Közös{s.owner?.name ? ` · ${s.owner.name}` : ""}</span>
-                    ) : (
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: "0.2rem" }}><Lock size={11} /> Privát</span>
-                    )}
+                    <OwnerBadge visibility={s.visibility} owner={s.owner} sharedAt={s.sharedAt} fallbackDate={s.createdAt} showPrivate />
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: "0.4rem" }}>

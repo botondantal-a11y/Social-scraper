@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { ArrowLeft, BarChart as BarChartIcon, Loader2, Link as LinkIcon, Database, Trash2, Filter, Square, Eye, Zap, Type, Layers, LayoutGrid, FileText, Maximize, Minimize, PanelLeftClose, PanelLeftOpen, Edit2, Check, X, Lock, Users } from "lucide-react";
+import OwnerBadge from "@/components/OwnerBadge";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import ReactMarkdown from 'react-markdown';
 
 export default function StatisticsPage() {
   const [urlInput, setUrlInput] = useState("");
+  const [sharerFilter, setSharerFilter] = useState("all");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -566,13 +568,22 @@ export default function StatisticsPage() {
               <Database size={18} color="var(--accent-primary)" /> Lementett Adatkészletek
             </h2>
             <div style={{ overflowY: 'auto', flex: 1, padding: '0.75rem' }}>
+              {(() => {
+                const sharers = Array.from(new Set(datasets.filter((d: any) => d.visibility === 'shared' && d.owner?.name).map((d: any) => d.owner.name))).sort() as string[];
+                return sharers.length > 0 ? (
+                  <select value={sharerFilter} onChange={(e) => setSharerFilter(e.target.value)} className="input-field" style={{ width: '100%', padding: '0.35rem 0.6rem', fontSize: '0.8rem', marginBottom: '0.6rem' }} title="Szűrés megosztóra">
+                    <option value="all">Bárki osztotta meg</option>
+                    {sharers.map((s) => (<option key={s} value={s}>Megosztó: {s}</option>))}
+                  </select>
+                ) : null;
+              })()}
               {loadingDatasets ? (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}><Loader2 className="animate-spin" color="var(--brand)" /></div>
               ) : datasets.length === 0 ? (
                 <p style={{ color: 'var(--text-muted)', textAlign: 'center', fontSize: '0.9rem', marginTop: '2rem' }}>Még nincs lementett adat.</p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {datasets.map((d) => (
+                  {datasets.filter((d: any) => sharerFilter === 'all' ? true : (d.visibility === 'shared' && d.owner?.name === sharerFilter)).map((d) => (
                     <div 
                       key={d.id} 
                       onClick={() => selectDataset(d)}
@@ -648,6 +659,11 @@ export default function StatisticsPage() {
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         {new Date(d.createdAt).toLocaleDateString('hu-HU')} • Forrás link
                       </div>
+                      {d.visibility === 'shared' && (
+                        <div style={{ marginTop: '0.25rem' }}>
+                          <OwnerBadge visibility={d.visibility} owner={d.owner} sharedAt={d.sharedAt} fallbackDate={d.createdAt} />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

@@ -39,6 +39,7 @@ model ListeningQuery {
   commentCount Int      @default(0)
   ownerId      String?
   visibility   String   @default("private") // "private" | "shared"
+  sharedAt     DateTime?
   owner        User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   createdAt    DateTime @default(now())
 }
@@ -96,6 +97,7 @@ model Article {
   isFavorite       Boolean   @default(true)
   ownerId          String?
   visibility       String    @default("shared") // "private" | "shared"
+  sharedAt         DateTime?
   owner            User?     @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   createdAt        DateTime  @default(now())
   comments         Comment[]
@@ -146,6 +148,7 @@ model StatisticDataset {
   summary    String?
   ownerId    String?
   visibility String   @default("shared") // "private" | "shared"
+  sharedAt   DateTime?
   owner      User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   createdAt  DateTime @default(now())
 }
@@ -250,6 +253,7 @@ model SavedYoutubeVideo {
   summary            String
   ownerId            String?
   visibility         String   @default("shared") // "private" | "shared"
+  sharedAt           DateTime?
   owner              User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   createdAt          DateTime @default(now())
 
@@ -298,6 +302,7 @@ model Trend {
   document      TrendDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
   ownerId       String?
   visibility    String   @default("shared") // "private" | "shared"
+  sharedAt      DateTime?
   owner         User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   createdAt     DateTime @default(now())
 }

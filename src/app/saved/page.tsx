@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { ArrowLeft, Clock, MessageSquare, Loader2, ExternalLink, Heart, Search, Filter, X, Trash2, Zap, Compass, Brain, Sparkles, BarChart, Calendar, Tag, ShieldAlert, TrendingUp, Cpu, Globe, Rocket, Lock, Users, Share2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import OwnerBadge from "@/components/OwnerBadge";
 
 // Helper to render text with markdown links as clickable React elements
 function renderTextWithLinks(text: string) {
@@ -71,6 +72,7 @@ export default function SavedArticles() {
   const [dateTo, setDateTo] = useState("");
   const [keywordFilter, setKeywordFilter] = useState("all");
   const [scopeFilter, setScopeFilter] = useState<"all" | "mine" | "shared">("all");
+  const [sharerFilter, setSharerFilter] = useState("all");
   const [myUserId, setMyUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -328,8 +330,11 @@ export default function SavedArticles() {
   };
 
   const uniqueKeywords = Array.from(new Set(articles.map(a => a.discoveryKeyword).filter(Boolean))).sort() as string[];
+  const uniqueSharers = Array.from(new Set(articles.filter(a => a.visibility === 'shared' && a.owner?.name).map(a => a.owner.name))).sort() as string[];
 
   const filteredArticles = articles.filter(a => {
+    const matchesSharer = sharerFilter === "all" ? true : (a.visibility === 'shared' && a.owner?.name === sharerFilter);
+    if (!matchesSharer) return false;
     const query = searchQuery.toLowerCase();
     const matchesSearch = a.title.toLowerCase().includes(query) || (a.summary && a.summary.toLowerCase().includes(query)) || (a.fullText && a.fullText.toLowerCase().includes(query));
     const matchesPlatform = platformFilter === "all" || a.platform === platformFilter;
@@ -397,6 +402,7 @@ export default function SavedArticles() {
 
               <div style={{ display: 'flex', gap: '1.5rem', color: 'var(--text-muted)', fontSize: '0.9rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: 'var(--spacing-xl)' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}><Clock size={16} /> {new Date(activeArticle?.publishedAt || activeArticle?.createdAt || '').toLocaleDateString('hu-HU')}</span>
+                <OwnerBadge visibility={activeArticle?.visibility} owner={activeArticle?.owner} sharedAt={activeArticle?.sharedAt} fallbackDate={activeArticle?.createdAt} size="md" showPrivate />
                 <a href={activeArticle?.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--accent-primary)', fontWeight: 500 }}>
                   <ExternalLink size={16} /> Eredeti cikk megnyitása
                 </a>
@@ -505,6 +511,12 @@ export default function SavedArticles() {
               </button>
             ))}
           </div>
+          {uniqueSharers.length > 0 && (
+            <select className="input-field" style={{ width: 'auto', cursor: 'pointer' }} value={sharerFilter} onChange={(e) => setSharerFilter(e.target.value)} title="Szűrés megosztóra">
+              <option value="all">Bárki osztotta meg</option>
+              {uniqueSharers.map(s => (<option key={s} value={s}>Megosztó: {s}</option>))}
+            </select>
+          )}
           <select className="input-field" style={{ width: 'auto', cursor: 'pointer' }} value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)}>
             <option value="all">Összes platform</option>
             <option value="reddit">Reddit</option>
@@ -631,15 +643,7 @@ export default function SavedArticles() {
                     {article.reactions && (<span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#ec4899', fontWeight: 500, fontSize: '0.75rem' }}><Heart size={12} fill="currentColor" /> {article.reactions}</span>)}
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                    {article.visibility === 'shared' ? (
-                      <span title={article.owner?.name ? `Megosztotta: ${article.owner.name}` : 'Közös tartalom'} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.7rem', fontWeight: 600, color: 'var(--success)' }}>
-                        <Users size={12} /> Közös{article.owner?.name ? ` · ${article.owner.name}` : ''}
-                      </span>
-                    ) : (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.7rem', fontWeight: 600, color: 'var(--text-muted)' }}>
-                        <Lock size={12} /> Privát
-                      </span>
-                    )}
+                    <OwnerBadge visibility={article.visibility} owner={article.owner} sharedAt={article.sharedAt} fallbackDate={article.createdAt} showPrivate />
                     {myUserId && article.ownerId === myUserId && (
                       <button onClick={(e) => toggleVisibility(e, article.id, article.visibility)} className="btn-secondary" title={article.visibility === 'shared' ? 'Visszavonás priváttá' : 'Feltöltés a közösbe'} style={{ padding: '4px 8px', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                         <Share2 size={12} /> {article.visibility === 'shared' ? 'Privát' : 'Közösbe'}

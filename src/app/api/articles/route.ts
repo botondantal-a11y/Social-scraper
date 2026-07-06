@@ -39,6 +39,7 @@ export async function GET(req: Request) {
         discoveryKeyword: true,
         ownerId: true,
         visibility: true,
+        sharedAt: true,
         owner: { select: { name: true, image: true } },
         _count: { select: { comments: true } }
       }
@@ -114,7 +115,10 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Csak a saját mentéseid láthatóságát módosíthatod." }, { status: 403 });
     }
 
-    const updated = await prisma.article.update({ where: { id }, data: { visibility } });
+    const updated = await prisma.article.update({
+      where: { id },
+      data: { visibility, sharedAt: visibility === 'shared' ? new Date() : null }
+    });
     return NextResponse.json({ success: true, article: updated });
   } catch (error: any) {
     console.error("Update article visibility error:", error);

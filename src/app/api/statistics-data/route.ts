@@ -73,7 +73,7 @@ export async function PATCH(req: Request) {
       where: { id },
       data: {
         ...(title ? { title } : {}),
-        ...(visibility ? { visibility } : {})
+        ...(visibility ? { visibility, sharedAt: visibility === 'shared' ? new Date() : null } : {})
       }
     });
 

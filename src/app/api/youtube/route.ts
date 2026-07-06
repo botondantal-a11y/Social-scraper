@@ -39,10 +39,10 @@ export async function POST(req: Request) {
     const savedVideo = existing
       ? await prisma.savedYoutubeVideo.update({
           where: { id: existing.id },
-          data: { title: title || videoId, imageUrl, transcript, originalTranscript, summary, url, visibility }
+          data: { title: title || videoId, imageUrl, transcript, originalTranscript, summary, url, visibility, sharedAt: visibility === 'shared' ? new Date() : null }
         })
       : await prisma.savedYoutubeVideo.create({
-          data: { videoId, url, title: title || videoId, imageUrl, transcript, originalTranscript, summary, ownerId: user.id, visibility }
+          data: { videoId, url, title: title || videoId, imageUrl, transcript, originalTranscript, summary, ownerId: user.id, visibility, sharedAt: visibility === 'shared' ? new Date() : null }
         });
 
     return NextResponse.json(savedVideo);
@@ -90,7 +90,10 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'Csak a saját mentéseid láthatóságát módosíthatod.' }, { status: 403 });
     }
 
-    const updated = await prisma.savedYoutubeVideo.update({ where: { id }, data: { visibility } });
+    const updated = await prisma.savedYoutubeVideo.update({
+      where: { id },
+      data: { visibility, sharedAt: visibility === 'shared' ? new Date() : null }
+    });
     return NextResponse.json({ success: true, video: updated });
   } catch (error) {
     console.error(error);

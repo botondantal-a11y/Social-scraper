@@ -38,6 +38,7 @@ export async function GET(req: Request) {
         commentCount: true,
         ownerId: true,
         visibility: true,
+        sharedAt: true,
         createdAt: true,
         owner: { select: { name: true, image: true } },
       }
@@ -79,6 +80,7 @@ export async function POST(req: Request) {
         commentCount: results.length,
         ownerId: user.id,
         visibility,
+        sharedAt: visibility === 'shared' ? new Date() : null,
       }
     });
 
@@ -106,7 +108,10 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'Csak a saját mentéseid láthatóságát módosíthatod.' }, { status: 403 });
     }
 
-    await prisma.listeningQuery.update({ where: { id }, data: { visibility } });
+    await prisma.listeningQuery.update({
+      where: { id },
+      data: { visibility, sharedAt: visibility === 'shared' ? new Date() : null }
+    });
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Saved listening PATCH error:', error);

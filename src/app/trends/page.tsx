@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import RadarChart from "../../components/RadarChart";
 import { Upload, Loader2, X, Eye, EyeOff, Trash2, Lock, Users } from "lucide-react";
+import OwnerBadge from "@/components/OwnerBadge";
 
 export default function TrendsPage() {
   const [trends, setTrends] = useState<any[]>([]);
@@ -14,6 +15,7 @@ export default function TrendsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [filterSignal, setFilterSignal] = useState("");
+  const [sharerFilter, setSharerFilter] = useState("all");
 
   const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 });
 
@@ -126,8 +128,11 @@ export default function TrendsPage() {
       
     const matchesCat = filterCategory ? t.category === filterCategory : true;
     const matchesSignal = filterSignal ? t.signalType === filterSignal : true;
-    return matchesSearch && matchesCat && matchesSignal;
+    const matchesSharer = sharerFilter === "all" ? true : (t.visibility === "shared" && t.owner?.name === sharerFilter);
+    return matchesSearch && matchesCat && matchesSignal && matchesSharer;
   });
+
+  const uniqueSharers = Array.from(new Set(trends.filter((t: any) => t.visibility === "shared" && t.owner?.name).map((t: any) => t.owner.name))).sort() as string[];
 
   const radarTrends = trends.filter(t => t.isOnRadar);
 
@@ -207,8 +212,8 @@ export default function TrendsPage() {
                     <option value="">Összes kategória</option>
                     {categories.map((c: any) => <option key={c} value={c}>{c}</option>)}
                   </select>
-                  <select 
-                    value={filterSignal} 
+                  <select
+                    value={filterSignal}
                     onChange={(e) => setFilterSignal(e.target.value)}
                     className="input-field"
                     style={{ flex: 1 }}
@@ -217,6 +222,12 @@ export default function TrendsPage() {
                     {signals.map((s: any) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
+                {uniqueSharers.length > 0 && (
+                  <select value={sharerFilter} onChange={(e) => setSharerFilter(e.target.value)} className="input-field" title="Szűrés megosztóra">
+                    <option value="all">Bárki osztotta meg</option>
+                    {uniqueSharers.map((s) => (<option key={s} value={s}>Megosztó: {s}</option>))}
+                  </select>
+                )}
               </div>
 
               <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }} className="custom-scrollbar">
@@ -251,6 +262,11 @@ export default function TrendsPage() {
                               {t.signalType}
                             </span>
                           </div>
+                          {t.visibility === 'shared' && (
+                            <div style={{ marginTop: '0.4rem' }}>
+                              <OwnerBadge visibility={t.visibility} owner={t.owner} sharedAt={t.sharedAt} fallbackDate={t.createdAt} />
+                            </div>
+                          )}
                         </div>
                         
                         <div style={{ display: 'flex', gap: '0.4rem' }}>

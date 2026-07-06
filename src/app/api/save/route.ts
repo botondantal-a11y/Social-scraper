@@ -67,6 +67,7 @@ export async function POST(req: Request) {
           embedding: embeddingString,
           owner: { connect: { id: user.id } },
           visibility,
+          sharedAt: visibility === 'shared' ? new Date() : null,
           comments: {
             create: comments && Array.isArray(comments) ? comments.map((c: any) => ({
               author: String(c?.author || "Ismeretlen"),
