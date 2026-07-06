@@ -25,6 +25,22 @@ model User {
   trends        Trend[]
   datasets      StatisticDataset[]
   scrapeJobs    ScrapeJob[]
+  listeningQueries ListeningQuery[]
+}
+
+model ListeningQuery {
+  id           String   @id @default(uuid())
+  name         String
+  platform     String
+  urls         String   // JSON tömb az URL-ekről
+  limit        Int      @default(50)
+  actorId      String?  // ha felülírt actort használt
+  results      String   // JSON tömb a normalizált kommentekről
+  commentCount Int      @default(0)
+  ownerId      String?
+  visibility   String   @default("private") // "private" | "shared"
+  owner        User?    @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
 }
 
 model Account {
