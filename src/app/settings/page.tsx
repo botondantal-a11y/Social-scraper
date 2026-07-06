@@ -10,6 +10,7 @@ export default function Settings() {
   const [status, setStatus] = useState<{ facebook: boolean; instagram: boolean }>({ facebook: false, instagram: false });
 
   const [apifyToken, setApifyToken] = useState('');
+  const [apifyMasked, setApifyMasked] = useState('');
   const [openaiKey, setOpenaiKey] = useState('');
   const [elevenlabsKey, setElevenlabsKey] = useState('');
   const [geminiKey, setGeminiKey] = useState('');
@@ -34,12 +35,42 @@ export default function Settings() {
     fetch('/api/settings')
       .then(res => res.json())
       .then(data => {
-        if (data.APIFY_API_TOKEN) setApifyToken(data.APIFY_API_TOKEN);
         if (data.OPENAI_API_KEY) setOpenaiKey(data.OPENAI_API_KEY);
         if (data.ELEVENLABS_API_KEY) setElevenlabsKey(data.ELEVENLABS_API_KEY);
         if (data.GEMINI_API_KEY) setGeminiKey(data.GEMINI_API_KEY);
       });
+
+    // A felhasználó saját Apify kulcsa (maszkolva)
+    fetch('/api/user/apify-key')
+      .then(res => res.json())
+      .then(data => {
+        if (data.hasKey) setApifyMasked(data.masked || '••••••••');
+      });
   }, []);
+
+  const handleSaveApifyKey = async () => {
+    setSaving(true);
+    setMessage('');
+    try {
+      const res = await fetch('/api/user/apify-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apifyToken })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage('Apify kulcs elmentve a profilodba!');
+        setApifyMasked(data.hasKey ? (apifyToken.slice(0, 8) + '…' + apifyToken.slice(-4)) : '');
+        setApifyToken('');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        setMessage(data.error || 'Hiba a mentés során.');
+      }
+    } catch {
+      setMessage('Hálózati hiba.');
+    }
+    setSaving(false);
+  };
 
   const handleLogin = async (platform: 'facebook' | 'instagram') => {
     if (platform === 'facebook') setIsLoggingInFB(true);
@@ -161,16 +192,23 @@ export default function Settings() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
           
-          {/* Apify */}
-          <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.1)' }}>
+          {/* Apify – felhasználónkénti saját kulcs */}
+          <div style={{ padding: '1rem', background: 'rgba(139, 92, 246, 0.06)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(139,92,246,0.3)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
               <Globe size={20} color="#8b5cf6" />
-              <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Apify (Social Scraper)</h3>
+              <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Apify – saját API kulcs</h3>
             </div>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Facebook, Insta, TikTok felhős letöltése</p>
-            <input type="password" value={apifyToken} onChange={e => setApifyToken(e.target.value)} placeholder="apify_api_..." className="input-field" style={{ width: '100%', marginBottom: '1rem' }} />
-            <button onClick={() => handleSaveSetting('APIFY_API_TOKEN', apifyToken)} disabled={saving} className="btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
-              <Save size={16} /> Mentés
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+              A Social Listening, a YouTube-leirat és a LinkedIn a te saját Apify kulcsoddal fut. A kulcsot az <a href="https://console.apify.com/settings/integrations" target="_blank" rel="noopener noreferrer" style={{ color: '#8b5cf6', textDecoration: 'underline' }}>Apify konzolban</a> találod.
+            </p>
+            {apifyMasked && (
+              <div style={{ fontSize: '0.8rem', color: 'var(--success)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <CheckCircle2 size={14} /> Mentve: <code>{apifyMasked}</code>
+              </div>
+            )}
+            <input type="password" value={apifyToken} onChange={e => setApifyToken(e.target.value)} placeholder={apifyMasked ? 'Új kulcs megadása (felülírja)…' : 'apify_api_...'} className="input-field" style={{ width: '100%', marginBottom: '1rem' }} />
+            <button onClick={handleSaveApifyKey} disabled={saving} className="btn-primary" style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem' }}>
+              <Save size={16} /> Mentés a profilomba
             </button>
           </div>
 

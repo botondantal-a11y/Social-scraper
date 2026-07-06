@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Loader2, Link as LinkIcon, MessageSquare, AlertCircle, Save, Check, ChevronDown, ChevronUp, Play, Pause, Trash2, Heart, Zap, Compass, BarChart, Network, Target, Bookmark, PlayCircle, TrendingUp } from "lucide-react";
+import { Search, Loader2, Link as LinkIcon, MessageSquare, AlertCircle, Save, Check, ChevronDown, ChevronUp, Play, Pause, Trash2, Heart, Zap, Compass, BarChart, Network, Target, Bookmark, PlayCircle, TrendingUp, Radio } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 type JobStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -248,6 +248,9 @@ function HomeContent() {
             </a>
             <a href="/youtube" className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(220, 38, 38, 0.1)', border: '1px solid #dc2626', color: '#dc2626' }}>
                <PlayCircle size={18} /> YouTube
+            </a>
+            <a href="/listening" className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(6, 182, 212, 0.1)', border: '1px solid #06b6d4', color: '#06b6d4' }}>
+               <Radio size={18} /> Social Listening
             </a>
             <a href="/chat" className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(139, 92, 246, 0.1)', border: '1px solid #8b5cf6', color: '#8b5cf6' }}>
                <MessageSquare size={18} /> Chat

@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { YoutubeTranscript } from 'youtube-transcript';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { PrismaClient } from '@/generated/client';
+import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/session';
+import { fetchTranscriptViaApify } from '@/lib/apify-transcript';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-const prisma = new PrismaClient();
 
 export const maxDuration = 300; // 5 perc timeout Vercel-en
 
@@ -59,13 +60,38 @@ export async function POST(req: Request) {
       imageUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
     }
 
-    // Fetch transcript
-    let transcriptData;
+    // Fetch transcript – először a beépített könyvtárral (helyben megy),
+    // ha az elbukik (pl. felhő-IP blokk), akkor a felhasználó Apify kulcsával.
+    let transcriptData: { text: string }[] | null = null;
+    let directError: unknown = null;
     try {
       transcriptData = await YoutubeTranscript.fetchTranscript(videoId);
     } catch (e) {
-      console.error('Transcript error:', e);
-      return NextResponse.json({ error: 'Nem található felirat (transcript) ehhez a videóhoz, vagy a videó privát/törölt.' }, { status: 404 });
+      directError = e;
+      console.warn('Közvetlen YouTube-leirat sikertelen, próbálkozás Apify-jal:', e);
+    }
+
+    if (!transcriptData || transcriptData.length === 0) {
+      // Apify fallback a felhasználó kulcsával
+      const sessionUser = await getSessionUser();
+      const dbUser = sessionUser
+        ? await prisma.user.findUnique({ where: { id: sessionUser.id }, select: { apifyToken: true } })
+        : null;
+
+      if (dbUser?.apifyToken) {
+        try {
+          transcriptData = await fetchTranscriptViaApify(url, dbUser.apifyToken);
+        } catch (apErr) {
+          console.error('Apify transcript hiba:', apErr);
+        }
+      }
+
+      if (!transcriptData || transcriptData.length === 0) {
+        const hint = dbUser?.apifyToken
+          ? 'A közvetlen és az Apify-os leirat-lekérés is sikertelen. Lehet, hogy a videóhoz nincs felirat, vagy próbálj másik transcript actort (APIFY_ACTOR_YT_TRANSCRIPT).'
+          : 'A közvetlen leirat-lekérés blokkolva (gyakori felhő-környezetben). Adj meg egy Apify API kulcsot a Beállításokban, hogy a leirat felhőben is működjön.';
+        return NextResponse.json({ error: hint }, { status: 404 });
+      }
     }
 
     const transcriptText = transcriptData.map(t => t.text).join(' ');
